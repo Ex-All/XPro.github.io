@@ -146,7 +146,6 @@
             border-top-right-radius: 2px;
         }
 
-        /* [新增/修改] AI 消息容器样式适配，使其背景透明以便跟随对话框背景 */
         .ai-message .message-content {
             background: var(--ai-msg-bg);
             border: 1px solid var(--border-color);
@@ -168,7 +167,6 @@
             border-radius: 10px !important;
             margin: 15px 0 !important;
             box-shadow: inset 0 1px 3px rgba(0, 0, 0, 0.05);
-            /* 增加内阴影增强深度感 */
         }
 
         .markdown-body code {
@@ -285,7 +283,6 @@
             }
         }
 
-        /* 这里的 pre 样式会被 markdown-body 接管，保留作为兜底 */
         pre {
             background: #f4f4f4;
             padding: 15px;
@@ -339,7 +336,7 @@
             <div class="avatar">
                 <div class="ai-avatar-x">X</div>
             </div>
-            <div class="message-content markdown-body">你好！我是 X-WisDom。渲染引擎已升级，支持表格、代码高亮。</div>
+            <div class="message-content markdown-body">你好！我是 X-WisDom。你的bestAI助手</div>
         </div>
     </div>
 
@@ -349,7 +346,6 @@
     </div>
 
     <script>
-        // [新增] 增强的 Marked 配置，开启 GFM 以支持表格
         marked.setOptions({
             gfm: true,
             breaks: true,
@@ -393,7 +389,7 @@
         async function handleSend() {
             const text = document.getElementById('userInput').value.trim();
             if (!text || isGenerating) return;
-            if (!config.key) { alert("请在设置中输入 API Key"); toggleSettings(); return; }
+            if (!config.key) { alert("请在设置中 input API Key"); toggleSettings(); return; }
 
             isGenerating = true;
             document.getElementById('sendBtn').disabled = true;
@@ -432,7 +428,6 @@
                                 const data = JSON.parse(line.substring(6));
                                 const content = data.choices[0].delta.content || "";
                                 fullResponse += content;
-                                // [修改] 确保渲染
                                 contentDiv.innerHTML = marked.parse(fullResponse);
                                 contentDiv.querySelectorAll('pre code').forEach(el => hljs.highlightElement(el));
                                 document.getElementById('chatBox').scrollTop = document.getElementById('chatBox').scrollHeight;
@@ -453,7 +448,7 @@
             const div = document.createElement('div');
             div.className = `message ${role}-message`;
             const avatarHtml = role === 'user' ? '<i class="fas fa-user"></i>' : '<div class="ai-avatar-x">X</div>';
-            // [修改] 为 AI 消息增加 markdown-body 类
+
             div.innerHTML = `
             <div class="avatar">${avatarHtml}</div>
             <div class="message-content ${role === 'ai' ? 'markdown-body' : ''}">${marked.parse(text)}</div>
@@ -473,7 +468,7 @@
             document.getElementById('hljs-light').disabled = document.body.classList.contains('dark-mode');
         };
         document.getElementById('userInput').onkeydown = (e) => { if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); handleSend(); } };
-        // [修改] 确保此处也有 gfm 开启
+ 
         marked.setOptions({ breaks: true, gfm: true });
     </script>
 </body>
