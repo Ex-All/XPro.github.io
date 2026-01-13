@@ -5,6 +5,6 @@ It can:
 - [x] chatGPT
 - [x] Deepseek
 - [x] ...
-- [x] Unofficial API (some)
+- [x] (Some) unofficial API
 - [ ] API that returns data in JSON
 - [ ] ... 
