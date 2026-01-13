@@ -1,0 +1,480 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>X-WisDom Pro</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet"
+        href="https://cdnjs.cloudflare.com/ajax/libs/github-markdown-css/5.2.0/github-markdown.min.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.8.0/styles/github-dark.min.css"
+        id="hljs-dark" disabled>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.8.0/styles/github.min.css"
+        id="hljs-light">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.8.0/highlight.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+
+    <style>
+        :root {
+            --bg-primary: #ffffff;
+            --bg-secondary: #f8f9fa;
+            --text-primary: #212529;
+            --text-secondary: #495057;
+            --border-color: #dee2e6;
+            --accent-primary: #4263eb;
+            --user-msg-bg: #4263eb;
+            --user-msg-text: #ffffff;
+            --ai-msg-bg: #ffffff;
+            --radius-md: 12px;
+            --radius-lg: 18px;
+            --code-bg: #f1f3f5;
+            --code-border: #d1d9e0;
+        }
+
+        .dark-mode {
+            --code-bg: #0d1117;
+            --code-border: #30363d;
+            --bg-primary: #121212;
+            --bg-secondary: #1e1e1e;
+            --text-primary: #e9ecef;
+            --text-secondary: #adb5bd;
+            --border-color: #383838;
+            --ai-msg-bg: #2d2d2d;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            background-color: var(--bg-primary);
+            color: var(--text-primary);
+            font-family: -apple-system, system-ui, sans-serif;
+            height: 100vh;
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+        }
+
+        header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 15px 25px;
+            border-bottom: 1px solid var(--border-color);
+            background: var(--bg-primary);
+            z-index: 10;
+        }
+
+        .logo {
+            font-size: 24px;
+            font-weight: 800;
+            color: var(--accent-primary);
+            letter-spacing: -1px;
+        }
+
+        .chat-main {
+            flex: 1;
+            overflow-y: auto;
+            padding: 25px;
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+            background: var(--bg-secondary);
+        }
+
+        .message {
+            display: flex;
+            max-width: 85%;
+            animation: fadeIn 0.3s ease;
+        }
+
+        .user-message {
+            align-self: flex-end;
+            flex-direction: row-reverse;
+        }
+
+        .ai-message {
+            align-self: flex-start;
+        }
+
+        .avatar {
+            width: 38px;
+            height: 38px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            flex-shrink: 0;
+            margin: 0 12px;
+            overflow: hidden;
+        }
+
+        .user-message .avatar {
+            background: var(--accent-primary);
+            color: white;
+            font-size: 18px;
+        }
+
+        .ai-avatar-x {
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(135deg, #4263eb, #00d4ff);
+            color: white;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 900;
+            font-size: 18px;
+        }
+
+        .message-content {
+            padding: 14px 18px;
+            border-radius: var(--radius-md);
+            font-size: 15px;
+            line-height: 1.6;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+        }
+
+        .user-message .message-content {
+            background: var(--user-msg-bg);
+            color: var(--user-msg-text);
+            border-top-right-radius: 2px;
+        }
+
+        /* [新增/修改] AI 消息容器样式适配，使其背景透明以便跟随对话框背景 */
+        .ai-message .message-content {
+            background: var(--ai-msg-bg);
+            border: 1px solid var(--border-color);
+            border-top-left-radius: 2px;
+            width: 100%;
+        }
+
+        .markdown-body {
+            background: transparent !important;
+            font-size: 15px !important;
+            color: inherit !important;
+            font-family: inherit !important;
+        }
+
+        .markdown-body pre {
+            background-color: var(--code-bg) !important;
+            border: 1px solid var(--border-color) !important;
+            padding: 16px !important;
+            border-radius: 10px !important;
+            margin: 15px 0 !important;
+            box-shadow: inset 0 1px 3px rgba(0, 0, 0, 0.05);
+            /* 增加内阴影增强深度感 */
+        }
+
+        .markdown-body code {
+            background-color: var(--code-bg) !important;
+            padding: 0.2em 0.4em !important;
+            border-radius: 4px !important;
+            font-family: 'Consolas', 'Monaco', monospace !important;
+            font-size: 88% !important;
+        }
+
+
+        .markdown-body pre code {
+            background: transparent !important;
+            padding: 0 !important;
+        }
+
+        .input-wrapper {
+            padding: 20px;
+            background: var(--bg-primary);
+            border-top: 1px solid var(--border-color);
+            display: flex;
+            gap: 12px;
+        }
+
+        textarea {
+            flex: 1;
+            padding: 12px;
+            border: 1px solid var(--border-color);
+            border-radius: var(--radius-md);
+            background: var(--bg-secondary);
+            color: var(--text-primary);
+            resize: none;
+            max-height: 150px;
+            outline: none;
+            font-size: 15px;
+        }
+
+        .send-btn {
+            width: 48px;
+            height: 48px;
+            border-radius: 50%;
+            border: none;
+            background: var(--accent-primary);
+            color: white;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: 0.2s;
+            flex-shrink: 0;
+        }
+
+        .send-btn:hover {
+            transform: scale(1.05);
+        }
+
+        .settings-panel {
+            position: fixed;
+            right: -350px;
+            top: 0;
+            width: 320px;
+            height: 100vh;
+            background: var(--bg-primary);
+            z-index: 100;
+            transition: 0.3s;
+            padding: 25px;
+            border-left: 1px solid var(--border-color);
+        }
+
+        .settings-panel.active {
+            right: 0;
+        }
+
+        .setting-item {
+            margin-bottom: 20px;
+        }
+
+        .setting-item label {
+            display: block;
+            font-size: 12px;
+            font-weight: bold;
+            margin-bottom: 6px;
+            color: var(--text-secondary);
+        }
+
+        .setting-item input,
+        .setting-item textarea {
+            width: 100%;
+            padding: 10px;
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            background: var(--bg-secondary);
+            color: var(--text-primary);
+            outline: none;
+        }
+
+        .overlay {
+            position: fixed;
+            inset: 0;
+            background: rgba(0, 0, 0, 0.4);
+            display: none;
+            z-index: 99;
+        }
+
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+                transform: translateY(10px);
+            }
+
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        /* 这里的 pre 样式会被 markdown-body 接管，保留作为兜底 */
+        pre {
+            background: #f4f4f4;
+            padding: 15px;
+            border-radius: 10px;
+            margin: 10px 0;
+            overflow-x: auto;
+        }
+
+        .dark-mode pre {
+            background: #000;
+        }
+    </style>
+</head>
+
+<body>
+
+    <div class="overlay" id="overlay" onclick="toggleSettings()"></div>
+
+    <header>
+        <div class="logo">X-WisDom <span style="font-weight: 300; font-size: 16px;">PRO</span></div>
+        <div style="display: flex; gap: 20px; font-size: 18px; color: var(--text-secondary);">
+            <i class="fas fa-moon" id="themeBtn" style="cursor:pointer"></i>
+            <i class="fas fa-cog" id="configBtn" style="cursor:pointer"></i>
+            <i class="fas fa-trash" onclick="clearChat()" style="cursor:pointer"></i>
+        </div>
+    </header>
+
+    <div class="settings-panel" id="settingsPanel">
+        <h3 style="margin-bottom: 20px;">系统配置</h3>
+        <div class="setting-item">
+            <label>API URL (官方或转发地址)</label>
+            <input type="text" id="baseUrl" placeholder="https://api.openai.com/v1">
+        </div>
+        <div class="setting-item">
+            <label>API Key</label>
+            <input type="password" id="apiKey" placeholder="sk-...">
+        </div>
+        <div class="setting-item">
+            <label>模型名称</label>
+            <input type="text" id="modelName" placeholder="gpt-4o-mini">
+        </div>
+        <div class="setting-item">
+            <label>自定义助手设定</label>
+            <textarea id="systemPrompt" rows="4"></textarea>
+        </div>
+        <button class="send-btn" style="width: 100%; border-radius: 10px;" onclick="saveConfig()">保存并关闭</button>
+    </div>
+
+    <div class="chat-main" id="chatBox">
+        <div class="message ai-message">
+            <div class="avatar">
+                <div class="ai-avatar-x">X</div>
+            </div>
+            <div class="message-content markdown-body">你好！我是 X-WisDom。渲染引擎已升级，支持表格、代码高亮。</div>
+        </div>
+    </div>
+
+    <div class="input-wrapper">
+        <textarea id="userInput" placeholder="输入您的问题..." rows="1"></textarea>
+        <button class="send-btn" id="sendBtn"><i class="fas fa-paper-plane"></i></button>
+    </div>
+
+    <script>
+        // [新增] 增强的 Marked 配置，开启 GFM 以支持表格
+        marked.setOptions({
+            gfm: true,
+            breaks: true,
+            highlight: function (code, lang) {
+                const language = hljs.getLanguage(lang) ? lang : 'plaintext';
+                return hljs.highlight(code, { language }).value;
+            }
+        });
+
+        let chatHistory = [];
+        let isGenerating = false;
+        let config = {
+            url: localStorage.getItem('xw_url') || 'https://api.openai.com/v1',
+            key: localStorage.getItem('xw_key') || '',
+            model: localStorage.getItem('xw_model') || 'gpt-4o-mini',
+            system: localStorage.getItem('xw_system') || '你是一个专业的AI助手，请使用Markdown回答。'
+        };
+
+        document.getElementById('baseUrl').value = config.url;
+        document.getElementById('apiKey').value = config.key;
+        document.getElementById('modelName').value = config.model;
+        document.getElementById('systemPrompt').value = config.system;
+
+        function saveConfig() {
+            config.url = document.getElementById('baseUrl').value.trim().replace(/\/+$/, "");
+            config.key = document.getElementById('apiKey').value.trim();
+            config.model = document.getElementById('modelName').value.trim();
+            config.system = document.getElementById('systemPrompt').value.trim();
+            localStorage.setItem('xw_url', config.url);
+            localStorage.setItem('xw_key', config.key);
+            localStorage.setItem('xw_model', config.model);
+            localStorage.setItem('xw_system', config.system);
+            toggleSettings();
+        }
+
+        function toggleSettings() {
+            document.getElementById('settingsPanel').classList.toggle('active');
+            document.getElementById('overlay').style.display = document.getElementById('settingsPanel').classList.contains('active') ? 'block' : 'none';
+        }
+
+        async function handleSend() {
+            const text = document.getElementById('userInput').value.trim();
+            if (!text || isGenerating) return;
+            if (!config.key) { alert("请在设置中输入 API Key"); toggleSettings(); return; }
+
+            isGenerating = true;
+            document.getElementById('sendBtn').disabled = true;
+            appendMsg('user', text);
+            document.getElementById('userInput').value = '';
+
+            const aiDiv = appendMsg('ai', '...');
+            const contentDiv = aiDiv.querySelector('.message-content');
+            let fullResponse = "";
+
+            try {
+                const response = await fetch(`${config.url}/chat/completions`, {
+                    method: 'POST',
+                    headers: { 'Authorization': `Bearer ${config.key}`, 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        model: config.model,
+                        messages: [{ role: "system", content: config.system }, ...chatHistory, { role: "user", content: text }],
+                        stream: true
+                    })
+                });
+
+                if (!response.ok) throw new Error(await response.text());
+
+                const reader = response.body.getReader();
+                const decoder = new TextDecoder();
+                contentDiv.innerHTML = "";
+
+                while (true) {
+                    const { done, value } = await reader.read();
+                    if (done) break;
+                    const chunk = decoder.decode(value);
+                    const lines = chunk.split('\n');
+                    for (let line of lines) {
+                        if (line.startsWith('data: ') && line !== 'data: [DONE]') {
+                            try {
+                                const data = JSON.parse(line.substring(6));
+                                const content = data.choices[0].delta.content || "";
+                                fullResponse += content;
+                                // [修改] 确保渲染
+                                contentDiv.innerHTML = marked.parse(fullResponse);
+                                contentDiv.querySelectorAll('pre code').forEach(el => hljs.highlightElement(el));
+                                document.getElementById('chatBox').scrollTop = document.getElementById('chatBox').scrollHeight;
+                            } catch (e) { }
+                        }
+                    }
+                }
+                chatHistory.push({ role: "user", content: text }, { role: "assistant", content: fullResponse });
+            } catch (err) {
+                contentDiv.innerHTML = `<span style="color:red">错误: ${err.message}</span>`;
+            } finally {
+                isGenerating = false;
+                document.getElementById('sendBtn').disabled = false;
+            }
+        }
+
+        function appendMsg(role, text) {
+            const div = document.createElement('div');
+            div.className = `message ${role}-message`;
+            const avatarHtml = role === 'user' ? '<i class="fas fa-user"></i>' : '<div class="ai-avatar-x">X</div>';
+            // [修改] 为 AI 消息增加 markdown-body 类
+            div.innerHTML = `
+            <div class="avatar">${avatarHtml}</div>
+            <div class="message-content ${role === 'ai' ? 'markdown-body' : ''}">${marked.parse(text)}</div>
+        `;
+            document.getElementById('chatBox').appendChild(div);
+            document.getElementById('chatBox').scrollTop = document.getElementById('chatBox').scrollHeight;
+            return div;
+        }
+
+        function clearChat() { if (confirm("确定清除所有对话记录？")) { chatHistory = []; document.getElementById('chatBox').innerHTML = ''; } }
+
+        document.getElementById('sendBtn').onclick = handleSend;
+        document.getElementById('configBtn').onclick = toggleSettings;
+        document.getElementById('themeBtn').onclick = () => {
+            document.body.classList.toggle('dark-mode');
+            document.getElementById('hljs-dark').disabled = !document.body.classList.contains('dark-mode');
+            document.getElementById('hljs-light').disabled = document.body.classList.contains('dark-mode');
+        };
+        document.getElementById('userInput').onkeydown = (e) => { if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); handleSend(); } };
+        // [修改] 确保此处也有 gfm 开启
+        marked.setOptions({ breaks: true, gfm: true });
+    </script>
+</body>
+
+</html>
